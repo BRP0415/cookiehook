@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://cdn.discordapp.com/attachments/1323759074155954221/1366195406710505493/cookie.png" type="image/png" />
+  <meta name="description" content="CookieHook is a simple tool to send messages to Discord using webhooks. It supports custom usernames, avatars, and embeds, making it easy to create styled messages for your Discord server." />
+  <meta name="theme-color" content="#AA6F3C" />
+  <title>CookieHook</title>
+  
+  <style>
+    :root {
+      --cookie-brown: #8B5A2B;
+      --cookie-brown-light: #A67C52;
+      --cookie-brown-dark: #654321;
+      --cookie-cream: #F5DEB3;
+      --cookie-cream-dark: #E6CCa3;
+      --cookie-chocolate: #4A2C2A;
+      --cookie-caramel: #D2691E;
+      --cookie-sprinkle-blue: #5865F2;
+      --cookie-sprinkle-green: #57F287;
+      --cookie-sprinkle-yellow: #FEE75C;
+      --cookie-sprinkle-pink: #EB459E;
+      --cookie-sprinkle-red: #ED4245;
+      --discord-bg: #36393F;
+      --discord-text: #DCDDDE;
+      --discord-author: #FFFFFF;
+      --error-color: #ED4245;
+      --success-color: #57F287;
+      --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.5;
+      font-size: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--cookie-cream);
+      color: var(--cookie-chocolate);
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(139, 90, 43, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 30%, rgba(139, 90, 43, 0.07) 0%, transparent 20%),
+        radial-gradient(circle at 30% 70%, rgba(139, 90, 43, 0.05) 0%, transparent 15%),
+        radial-gradient(circle at 70% 80%, rgba(139, 90, 43, 0.07) 0%, transparent 15%);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header Styles */
+    header {
+      background-color: var(--cookie-brown);
+      color: var(--cookie-cream);
+      padding: 1rem 0;
+      box-shadow: var(--box-shadow);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .brand img {
+      width: 36px;
+      height: 36px;
+    }
+
+    header h2 {
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-top: 0.25rem;
+    }
+
+    /* Main Content */
+    main {
+      padding: 2rem 0;
+    }
+
+    .cookie-card {
+      background-color: #FFFFFF;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--box-shadow);
+      margin-bottom: 1.5rem;
+      border: 2px solid rgba(139, 90, 43, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cookie-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--cookie-caramel), var(--cookie-brown));
+      border-radius: 4px 4px 0 0;
+    }
+
+    .cookie-card h2 {
+      color: var(--cookie-brown-dark);
+      margin-bottom: 1.25rem;
+      font-size: 1.5rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    .cookie-card h2::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background-color: var(--cookie-caramel);
+      border-radius: 3px;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--cookie-brown-dark);
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--cookie-cream-dark);
+      border-radius: 8px;
+      background-color: #FFFFFF;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--cookie-caramel);
+      box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.25);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    small {
+      display: block;
+      margin-top: 0.5rem;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    /* Button Styles */
+    .button {
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .button:active {
+      transform: translateY(1px);
+    }
+
+    .button-primary {
+      background-color: var(--cookie-brown);
+      color: white;
+    }
+
+    .button-primary:hover {
+      background-color: var(--cookie-brown-light);
+      box-shadow: 0 2px 8px rgba(139, 90, 43, 0.4);
+    }
+
+    .button-secondary {
+      background-color: var(--cookie-cream);
+      color: var(--cookie-brown-dark);
+    }
+
+    .button-secondary:hover {
+      background-color: var(--cookie-cream-dark);
+    }
+
+    /* Layout */
+    .editor-wrapper {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 768px) {
+      .editor-wrapper {
+        grid-template-columns: 3fr 2fr;
+      }
+    }
+
+    /* Discord Message Preview */
+    .discord-preview {
+      background-color: var(--discord-bg);
+      border-radius: 8px;
+      padding: 1rem;
+      color: var(--discord-text);
+      overflow: hidden;
+    }
+
+    .discord-message {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .discord-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .discord-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .discord-content {
+      flex: 1;
+    }
+
+    .discord-author {
+      font-weight: 600;
+      color: var(--discord-author);
+      margin-bottom: 0.25rem;
+    }
+
+    .discord-text {
+      word-break: break-word;
+      line-height: 1.3;
+    }
+
+    /* Embed Preview */
+    .discord-embed {
+      margin-top: 0.5rem;
+      margin-left: 46px;
+      background-color: #2F3136;
+      border-radius: 4px;
+      padding: 0.75rem;
+      position: relative;
+      max-width: 520px;
+    }
+
+    .discord-embed-pill {
+      position: absolute;
+      left: -2px;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 2px;
+      background-color: var(--cookie-sprinkle-blue);
+    }
+
+    .discord-embed-title {
+      color: white;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .discord-embed-description {
+      color: var(--discord-text);
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+      white-space: pre-wrap;
+    }
+
+    /* Collapse sections */
+    .collapse-button {
+      width: 100%;
+      text-align: left;
+      background-color: var(--cookie-cream);
+      color: var(--cookie-brown-dark);
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+
+    .collapse-button:hover {
+      background-color: var(--cookie-cream-dark);
+    }
+
+    .collapse-button::after {
+      content: '+';
+      font-size: 1.25rem;
+      transition: transform 0.3s;
+    }
+
+    .collapse-button.active::after {
+      transform: rotate(45deg);
+    }
+
+    .collapse-content {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .collapse-content.show {
+      display: block;
+      animation: fadeDown 0.3s ease;
+    }
+
+    @keyframes fadeDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Color Picker */
+    .color-picker {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .color-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.selected {
+      box-shadow: 0 0 0 2px white, 0 0 0 4px var(--cookie-brown);
+    }
+
+    /* Status Messages */
+    #statusContainer {
+      margin-bottom: 1rem;
+    }
+
+    .status-message {
+      position: fixed;
+      bottom: 55px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 90%;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+
+    .status-success {
+      background-color: rgba(87, 242, 135, 0.2);
+      border: 1px solid #57f287; /* var(--success-color) fallback */
+      color: #2a793f;
+    }
+
+    .status-error {
+      background-color: rgba(237, 66, 69, 0.2);
+      border: 1px solid #ed4245; /* var(--error-color) fallback */
+      color: #a62d2f;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Footer Styles */
+    footer {
+      background-color: var(--cookie-chocolate);
+      color: var(--cookie-cream);
+      padding: 1.5rem 0;
+      margin-top: 2rem;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      color: var(--cookie-cream);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--cookie-caramel);
+      text-decoration: underline;
+    }
+
+    /* Utilities */
+    .hidden {
+      display: none;
+    }
+
+    /* CSS for Markdown parsing */
+    .markdown-bold {
+      font-weight: bold;
+    }
+
+    .markdown-italic {
+      font-style: italic;
+    }
+
+    .markdown-underline {
+      text-decoration: underline;
+    }
+
+    .markdown-strikethrough {
+      text-decoration: line-through;
+    }
+
+    .markdown-code {
+      background-color: rgba(0, 0, 0, 0.2);
+      font-family: monospace;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+    }
+
+    /* Animations */
+    @keyframes cookieBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .button-primary:active {
+      animation: cookieBounce 0.5s ease;
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 200px;
+      background-color: var(--cookie-chocolate);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <div class="brand">
+        <img src="https://cdn.discordapp.com/attachments/1323759074155954221/1366195406710505493/cookie.png?ex=682f0b5f&is=682db9df&hm=9385deec0e56e2fd160f778df765f5a757402b0dd9b6839e05d581189210ea12&" alt="Cookie Logo" />
+        <h1>CookieHook</h1>
+      </div>
+      <div>
+        <h2>Bake Delicious Discord Webhooks</h2>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <div id="statusContainer"></div>
+      
+      <div class="cookie-card">
+        <h2>Webhook URL</h2>
+        <div class="form-group">
+          <label for="webhookUrl">Discord Webhook URL</label>
+          <input 
+            type="url" 
+            id="webhookUrl" 
+            placeholder="https://discord.com/api/webhooks/..." 
+            autocomplete="off"
+          />
+          <small>Your webhook URL is never stored or sent anywhere except directly to Discord.</small>
+        </div>
+      </div>
+      
+      <div class="editor-wrapper">
+        <div class="cookie-card">
+          <h2>Message Baker</h2>
+          <li>Reminder: Anything you dont fill out we'll use the CookieMonster pfp and username! (though the URL does need to be filled out)</li>
+          <br>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input 
+              type="text" 
+              id="username" 
+              placeholder="CookieMonster" 
+              value="CookieMonster"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="avatarUrl">Avatar URL</label>
+            <input 
+              type="url" 
+              id="avatarUrl" 
+              placeholder="https://i.imgur.com/..." 
+              value="https://img.icons8.com/emoji/48/cookie-emoji.png"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="content">Message Content</label>
+            <textarea 
+              id="content" 
+              rows="4" 
+              placeholder="Your message here..."
+            >Hello, I have some delicious cookies for you!</textarea>
+            <small>Supports markdown formatting like **bold**, *italic*, and ~~strikethrough~~  and so on</small>
+          </div>
+          
+          <div class="embed-options">
+            <button class="collapse-button" id="embedToggle" type="button">
+              Embeds (Extra Toppings)
+            </button>
+            
+            <div class="collapse-content" id="embedContent">
+              <div class="form-group">
+                <label for="embedTitle">Embed Title</label>
+                <input 
+                  type="text" 
+                  id="embedTitle" 
+                  placeholder="Fresh from the oven!"
+                />
+              </div>
+              
+              <div class="form-group">
+                <label for="embedDescription">Embed Description</label>
+                <textarea 
+                  id="embedDescription" 
+                  rows="3" 
+                  placeholder="Describe your delicious message..."
+                ></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label>Embed Color</label>
+                <div class="color-picker" id="colorPicker">
+                  <div class="color-option selected" style="background-color: #5865F2;" data-color="#5865F2"></div>
+                  <div class="color-option" style="background-color: #57F287;" data-color="#57F287"></div>
+                  <div class="color-option" style="background-color: #FEE75C;" data-color="#FEE75C"></div>
+                  <div class="color-option" style="background-color: #EB459E;" data-color="#EB459E"></div>
+                  <div class="color-option" style="background-color: #ED4245;" data-color="#ED4245"></div>
+                  <div class="color-option" style="background-color: #D2691E;" data-color="#D2691E"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-top: 1.5rem;">
+            <button class="button button-primary" id="sendButton">
+              Send Cookie
+            </button>
+            <button class="button button-secondary" id="clearButton">
+              Clear Dough
+            </button>
+          </div>
+        </div>
+        
+        <div class="cookie-card">
+          <h2>Preview</h2>
+          <div class="discord-preview" id="messagePreview">
+            <div class="discord-message">
+              <div class="discord-avatar">
+                <img src="https://img.icons8.com/emoji/48/cookie-emoji.png" alt="Avatar" id="previewAvatar" />
+              </div>
+              <div class="discord-content">
+                <div class="discord-author" id="previewUsername">CookieMonster</div>
+                <div class="discord-text" id="previewContent">Hello, I have some delicious cookies for you!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="container footer-content">
+      <p>Made by BRP0415</p>
+      <div class="footer-links">
+        <a href="https://discord.com/developers/docs/resources/webhook" target="_blank">Discord Docs</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // DOM Elements
+    const webhookUrlInput = document.getElementById('webhookUrl');
+    const usernameInput = document.getElementById('username');
+    const avatarUrlInput = document.getElementById('avatarUrl');
+    const contentInput = document.getElementById('content');
+    const embedTitleInput = document.getElementById('embedTitle');
+    const embedDescriptionInput = document.getElementById('embedDescription');
+    const colorPicker = document.getElementById('colorPicker');
+    const sendButton = document.getElementById('sendButton');
+    const clearButton = document.getElementById('clearButton');
+    const statusContainer = document.getElementById('statusContainer');
+    const embedToggle = document.getElementById('embedToggle');
+    const embedContent = document.getElementById('embedContent');
+    
+    // Preview Elements
+    const previewAvatar = document.getElementById('previewAvatar');
+    const previewUsername = document.getElementById('previewUsername');
+    const previewContent = document.getElementById('previewContent');
+    const messagePreview = document.getElementById('messagePreview');
+    
+    // Default selected color
+    let selectedColor = '#5865F2';
+    
+    // Initialize event listeners
+    function init() {
+      // Input change listeners for real-time preview
+      usernameInput.addEventListener('input', updatePreview);
+      avatarUrlInput.addEventListener('input', updatePreview);
+      contentInput.addEventListener('input', updatePreview);
+      embedTitleInput.addEventListener('input', updatePreview);
+      embedDescriptionInput.addEventListener('input', updatePreview);
+      
+      // Color picker functionality
+      colorPicker.addEventListener('click', handleColorSelect);
+      
+      // Button actions
+      sendButton.addEventListener('click', sendWebhook);
+      clearButton.addEventListener('click', clearForm);
+      
+      // Collapsible sections
+      embedToggle.addEventListener('click', toggleEmbed);
+      
+      // Modal links
+      document.getElementById('aboutLink').addEventListener('click', showAboutModal);
+      document.getElementById('privacyLink').addEventListener('click', showPrivacyModal);
+      
+      // Initial preview update
+      updatePreview();
+    }
+    
+    // Update the real-time preview
+    function updatePreview() {
+      // Update avatar and username
+      previewAvatar.src = avatarUrlInput.value || 'https://img.icons8.com/emoji/48/cookie-emoji.png';
+      previewUsername.textContent = usernameInput.value || 'CookieMonster';
+      
+      // Update content with Markdown parsing
+      const parsedContent = parseMarkdown(contentInput.value || '');
+      previewContent.innerHTML = parsedContent || 'Your message will appear here';
+      
+      // Handle embed preview
+      updateEmbedPreview();
+    }
+    
+    // Update embed preview
+    function updateEmbedPreview() {
+      // Remove any existing embed preview
+      const existingEmbed = messagePreview.querySelector('.discord-embed');
+      if (existingEmbed) {
+        existingEmbed.remove();
+      }
+      
+      // Check if we have embed content to display
+      const title = embedTitleInput.value.trim();
+      const description = embedDescriptionInput.value.trim();
+      
+      if (title || description) {
+        // Create embed element
+        const embedEl = document.createElement('div');
+        embedEl.className = 'discord-embed';
+        
+        // Create pill with selected color
+        const pillEl = document.createElement('div');
+        pillEl.className = 'discord-embed-pill';
+        pillEl.style.backgroundColor = selectedColor;
+        embedEl.appendChild(pillEl);
+        
+        // Add title if present
+        if (title) {
+          const titleEl = document.createElement('div');
+          titleEl.className = 'discord-embed-title';
+          titleEl.textContent = title;
+          embedEl.appendChild(titleEl);
+        }
+        
+        // Add description if present
+        if (description) {
+          const descEl = document.createElement('div');
+          descEl.className = 'discord-embed-description';
+          descEl.textContent = description;
+          embedEl.appendChild(descEl);
+        }
+        
+        // Add embed to preview
+        messagePreview.appendChild(embedEl);
+      }
+    }
+    
+    // Parse basic markdown
+    function parseMarkdown(text) {
+      if (!text) return '';
+      
+      // Bold: **text** or __text__
+      text = text.replace(/\*\*(.*?)\*\*|__(.*?)__/g, function(match, p1, p2) {
+        return `<span class="markdown-bold">${p1 || p2}</span>`;
+      });
+      
+      // Italic: *text* or _text_
+      text = text.replace(/\*(.*?)\*|_(.*?)_/g, function(match, p1, p2) {
+        return `<span class="markdown-italic">${p1 || p2}</span>`;
+      });
+      
+      // Strikethrough: ~~text~~
+      text = text.replace(/~~(.*?)~~/g, '<span class="markdown-strikethrough">$1</span>');
+      
+      // Underline: __text__
+      text = text.replace(/__([^_]+)__/g, '<span class="markdown-underline">$1</span>');
+      
+      // Code: `text`
+      text = text.replace(/`([^`]+)`/g, '<span class="markdown-code">$1</span>');
+      
+      // Line breaks
+      text = text.replace(/\n/g, '<br>');
+      
+      return text;
+    }
+    
+    // Handle color selection in the color picker
+    function handleColorSelect(e) {
+      const colorOption = e.target.closest('.color-option');
+      if (!colorOption) return;
+      
+      // Update selected color
+      selectedColor = colorOption.dataset.color;
+      
+      // Update UI
+      document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      colorOption.classList.add('selected');
+      
+      // Update preview
+      updatePreview();
+    }
+    
+    // Toggle embed options visibility
+    function toggleEmbed() {
+      embedToggle.classList.toggle('active');
+      embedContent.classList.toggle('show');
+    }
+    
+    // Send webhook to Discord
+    async function sendWebhook() {
+      const webhookUrl = webhookUrlInput.value.trim();
+      
+      // Validate webhook URL
+      if (!webhookUrl) {
+        showStatus('Please enter a Discord webhook URL', 'error');
+        return;
+      }
+      
+      if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+        showStatus('Invalid Discord webhook URL format', 'error');
+        return;
+      }
+      
+      // Prepare payload
+      const payload = {
+        username: usernameInput.value || 'CookieMonster',
+        avatar_url: avatarUrlInput.value || 'https://img.icons8.com/emoji/48/cookie-emoji.png',
+        content: contentInput.value || ''
+      };
+      
+      // Add embed if we have title or description
+      const embedTitle = embedTitleInput.value.trim();
+      const embedDescription = embedDescriptionInput.value.trim();
+      
+      if (embedTitle || embedDescription) {
+        payload.embeds = [{
+          title: embedTitle || undefined,
+          description: embedDescription || undefined,
+          color: parseInt(selectedColor.replace('#', ''), 16)
+        }];
+      }
+      
+      // Show loading state
+      sendButton.disabled = true;
+      sendButton.innerHTML = '<span class="loading-spinner"></span>Sending...';
+      
+      try {
+        // Send the webhook
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        // Handle response
+        if (response.ok) {
+          showStatus('Cookie successfully sent to Discord!', 'success');
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.message || `Error: ${response.status} ${response.statusText}`;
+          showStatus(`Failed to send webhook: ${errorMessage}`, 'error');
+        }
+      } catch (error) {
+        showStatus(`Failed to send webhook: ${error.message}`, 'error');
+      } finally {
+        // Reset button state
+        sendButton.disabled = false;
+        sendButton.innerHTML = 'Send Cookie';
+      }
+    }
+    
+    // Clear all form inputs
+    function clearForm() {
+      // Reset inputs
+      webhookUrlInput.value = '';
+      usernameInput.value = 'CookieMonster';
+      avatarUrlInput.value = 'https://img.icons8.com/emoji/48/cookie-emoji.png';
+      contentInput.value = '';
+      embedTitleInput.value = '';
+      embedDescriptionInput.value = '';
+      
+      // Reset color selection
+      document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      document.querySelector('.color-option[data-color="#5865F2"]').classList.add('selected');
+      selectedColor = '#5865F2';
+      
+      // Update preview
+      updatePreview();
+      
+      // Show status
+      showStatus('All form fields have been cleared!', 'success');
+    }
+    
+    // Show status message
+    function showStatus(message, type) {
+      // Create status element
+      const statusEl = document.createElement('div');
+      statusEl.className = `status-message status-${type}`;
+      statusEl.textContent = message;
+      
+      // Clear existing messages
+      statusContainer.innerHTML = '';
+      
+      // Add new message
+      statusContainer.appendChild(statusEl);
+      
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        statusEl.style.opacity = '0';
+        setTimeout(() => {
+          if (statusContainer.contains(statusEl)) {
+            statusContainer.removeChild(statusEl);
+          }
+        }, 300);
+      }, 5000);
+    }
+    
+    // Show About modal
+    function showAboutModal(e) {
+      e.preventDefault();
+      alert('CookieHook: A deliciously simple Discord webhook sender.\n\nUse this tool to send styled messages to your Discord server via webhooks. Just like baking cookies, it\'s all about adding the right ingredients!');
+    }
+    
+    // Show Privacy modal
+    function showPrivacyModal(e) {
+      e.preventDefault();
+      alert('Privacy Policy: CookieHook is a client-side only application. We don\'t collect, store, or share any of your data. Your webhook URLs and message contents are sent directly to Discord and are never stored on our servers.');
+    }
+    
+    // Handle avatar load errors
+    previewAvatar.addEventListener('error', () => {
+      previewAvatar.src = 'https://img.icons8.com/emoji/48/cookie-emoji.png';
+      if (avatarUrlInput.value !== 'https://img.icons8.com/emoji/48/cookie-emoji.png') {
+        showStatus('Could not load the avatar image. Using default cookie avatar instead.', 'error');
+      }
+    });
+    
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
